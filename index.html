@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f5f4ff">
+<title>PremByLy — Premium Digital Store</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f7f7fc;color:#20243a}
+header{padding:22px 6%;display:flex;justify-content:space-between;align-items:center;background:#fff}
+.logo{font-size:24px;font-weight:800;color:#6656bd}
+.logo span{color:#b19be9}
+.cart-btn,button{border:0;border-radius:12px;padding:12px 17px;background:#7162c8;color:white;font-weight:bold;cursor:pointer}
+.hero{margin:20px auto;padding:35px 25px;max-width:1100px;border-radius:24px;background:linear-gradient(120deg,#e7e5ff,#e6f2ff)}
+.hero small{color:#7162c8;font-weight:bold}
+.hero h1{font-size:clamp(30px,6vw,48px);margin:12px 0}
+.hero p{color:#62677c;line-height:1.6}
+.tag{display:inline-block;background:#fff;padding:9px 13px;border-radius:30px;margin:5px 4px 0 0;font-size:12px;color:#7162c8}
+main{max-width:1100px;margin:35px auto;padding:0 18px}
+.heading{display:flex;justify-content:space-between;align-items:center}
+.heading h2{font-size:23px}
+.heading span{color:#888}
+.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:17px}
+.card{background:white;border:1px solid #e8e7f0;border-radius:20px;padding:18px;box-shadow:0 5px 20px #29204b08}
+.product-top{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.product-icon{width:43px;height:43px;border-radius:13px;background:#efedff;display:grid;place-items:center;color:#7162c8;font-weight:bold;font-size:19px}
+.product-top h3{margin:0 0 5px;font-size:16px}
+.product-top small{color:#85899b}
+label{display:block;font-size:12px;font-weight:bold;color:#73778b;margin:14px 0 7px}
+select{width:100%;padding:12px;border:1px solid #e0e1ec;border-radius:12px;background:#f8f8fc;color:#34364b;font-size:14px}
+.price-row{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+.price{font-size:20px;font-weight:800}
+.price small{display:block;font-size:11px;color:#888;font-weight:normal;margin-top:4px}
+.add{padding:11px 16px}
+.cart{margin:35px 0;background:white;padding:22px;border-radius:20px;border:1px solid #e8e7f0}
+.cart h2{margin-top:0}
+.cart-item{padding:13px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between;gap:10px;font-size:13px}
+.remove{background:#fcebed;color:#c64c65;padding:7px 10px}
+.total{display:flex;justify-content:space-between;font-size:19px;font-weight:bold;margin:22px 0}
+.checkout{width:100%;padding:15px;font-size:15px}
+.empty{text-align:center;color:#999;padding:20px}
+footer{text-align:center;padding:30px;color:#999;font-size:12px}
+@media(max-width:500px){header{padding:17px 5%}.hero{margin:15px;padding:27px 20px}.products{grid-template-columns:1fr 1fr;gap:10px}.card{padding:12px}.product-icon{width:35px;height:35px}.product-top{gap:8px}.product-top h3{font-size:13px}.price{font-size:16px}.add{padding:10px;font-size:12px}.card select{font-size:12px;padding:10px}}
+@media(max-width:350px){.products{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Prem<span>ByLy.</span></div>
+  <button class="cart-btn" onclick="document.getElementById('keranjang').scrollIntoView({behavior:'smooth'})">🛒 Keranjang (<span id="count">0</span>)</button>
+</header>
+
+<section class="hero">
+  <small>✦ YOUR PREMIUM DIGITAL STORE</small>
+  <h1>Everything Premium,<br>Just One Click Away.</h1>
+  <p>Temukan berbagai layanan digital premium dengan pilihan paket yang sesuai kebutuhanmu.</p>
+  <span class="tag">✦ Produk berkualitas</span>
+  <span class="tag">✦ Proses mudah</span>
+  <span class="tag">✦ Support pelanggan</span>
+</section>
+
+<main>
+  <div class="heading">
+    <h2>Katalog Produk</h2>
+    <span>Produk digital</span>
+  </div>
+  <div class="products" id="products"></div>
+
+  <section class="cart" id="keranjang">
+    <h2>🛒 Keranjang Belanja</h2>
+    <div id="cart-items"><div class="empty">Belum ada produk dipilih.</div></div>
+    <div class="total"><span>Total</span><span id="total">Rp0</span></div>
+    <button class="checkout" onclick="checkout()">Pesan melalui WhatsApp →</button>
+  </section>
+</main>
+
+<footer>© 2026 PremByLy. Your Premium Digital Store.</footer>
+
+<script>
+const products=[
+ {name:"Design Pro",category:"Desain & Kreativitas",icon:"✦",variants:[
+  {type:"Sharing",plans:[["1 bulan",15000],["3 bulan",40000]]},
+  {type:"Private",plans:[["1 bulan",35000],["3 bulan",95000]]}
+ ]},
+ {name:"Stream Plus",category:"Hiburan & Streaming",icon:"▶",variants:[
+  {type:"Sharing",plans:[["1 bulan",15000],["3 bulan",42000]]},
+  {type:"Private",plans:[["1 bulan",45000],["3 bulan",120000]]}
+ ]},
+ {name:"AI Studio",category:"AI Assistant",icon:"✧",variants:[
+  {type:"Sharing",plans:[["1 bulan",20000],["3 bulan",55000]]},
+  {type:"Member",plans:[["1 bulan",40000],["3 bulan",110000]]}
+ ]},
+ {name:"Cloud Space",category:"Produktivitas",icon:"☁",variants:[
+  {type:"Sharing",plans:[["1 bulan",12000],["1 tahun",90000]]},
+  {type:"Private",plans:[["1 bulan",30000],["1 tahun",250000]]}
+ ]}
+];
+let cart=[];
+
+const rupiah=n=>"Rp"+n.toLocaleString("id-ID");
+
+function renderProducts(){
+ document.getElementById("products").innerHTML=products.map((p,i)=>`
+ <article class="card">
+  <div class="product-top">
+   <div class="product-icon">${p.icon}</div>
+   <div><h3>${p.name}</h3><small>${p.category}</small></div>
+  </div>
+  <label>Jenis akun</label>
+  <select id="type${i}" onchange="updatePrice(${i})">
+   ${p.variants.map(v=>`<option>${v.type}</option>`).join("")}
+  </select>
+  <label>Paket</label>
+  <select id="plan${i}" onchange="updatePrice(${i})"></select>
+  <div class="price-row">
+   <div class="price" id="price${i}">-</div>
+   <button class="add" onclick="addCart(${i})">+ Pilih</button>
+  </div>
+ </article>`).join("");
+ products.forEach((p,i)=>updatePrice(i));
+}
+
+function updatePrice(i){
+ const p=products[i];
+ const v=p.variants.find(x=>x.type===document.getElementById("type"+i).value);
+ const plan=document.getElementById("plan"+i);
+ const old=plan.value;
+ plan.innerHTML=v.plans.map(x=>`<option>${x[0]}</option>`).join("");
+ if(v.plans.some(x=>x[0]===old))plan.value=old;
+ const selected=v.plans.find(x=>x[0]===plan.value);
+ document.getElementById("price"+i).innerHTML=
+ rupiah(selected[1])+`<small>/${selected[0]}</small>`;
+}
+
+function addCart(i){
+ const p=products[i];
+ const type=document.getElementById("type"+i).value;
+ const variant=p.variants.find(v=>v.type===type);
+ const plan=variant.plans.find(x=>x[0]===document.getElementById("plan"+i).value);
+ cart.push({name:p.name,type,plan:plan[0],price:plan[1]});
+ renderCart();
+}
+
+function renderCart(){
+ document.getElementById("count").textContent=cart.length;
+ document.getElementById("cart-items").innerHTML=cart.length?
+ cart.map((x,i)=>`
+ <div class="cart-item">
+  <div><b>${x.name}</b><br>${x.type} · ${x.plan}<br>${rupiah(x.price)}</div>
+  <button class="remove" onclick="removeCart(${i})">Hapus</button>
+ </div>`).join(""):'<div class="empty">Belum ada produk dipilih.</div>';
+ document.getElementById("total").textContent=rupiah(cart.reduce((s,x)=>s+x.price,0));
+}
+
+function removeCart(i){cart.splice(i,1);renderCart();}
+
+function checkout(){
+ if(!cart.length){alert("Pilih produk terlebih dahulu.");return;}
+ const nomor="628XXXXXXXXXX";
+ if(nomor.includes("X")){alert("Nomor WhatsApp toko belum diatur. Kita akan mengaturnya nanti.");return;}
+ const lines=cart.map((x,i)=>`${i+1}. ${x.name} - ${x.type} - ${x.plan} (${rupiah(x.price)})`).join("\n");
+ const total=rupiah(cart.reduce((s,x)=>s+x.price,0));
+ const msg=`Halo PremByLy! Saya ingin memesan:\n\n${lines}\n\nTotal: ${total}\n\nMohon informasi pembayaran.`;
+ window.open("https://wa.me/"+nomor+"?text="+encodeURIComponent(msg),"_blank");
+}
+renderProducts();
+</script>
+</body>
+</html>
