@@ -81,22 +81,9 @@ footer{text-align:center;padding:30px;color:#999;font-size:12px}
 
 <script>
 const products=[
- {name:"Design Pro",category:"Desain & Kreativitas",icon:"✦",variants:[
-  {type:"Sharing",plans:[["1 bulan",15000],["3 bulan",40000]]},
-  {type:"Private",plans:[["1 bulan",35000],["3 bulan",95000]]}
- ]},
- {name:"Stream Plus",category:"Hiburan & Streaming",icon:"▶",variants:[
-  {type:"Sharing",plans:[["1 bulan",15000],["3 bulan",42000]]},
-  {type:"Private",plans:[["1 bulan",45000],["3 bulan",120000]]}
- ]},
- {name:"AI Studio",category:"AI Assistant",icon:"✧",variants:[
-  {type:"Sharing",plans:[["1 bulan",20000],["3 bulan",55000]]},
-  {type:"Member",plans:[["1 bulan",40000],["3 bulan",110000]]}
- ]},
- {name:"Cloud Space",category:"Produktivitas",icon:"☁",variants:[
-  {type:"Sharing",plans:[["1 bulan",12000],["1 tahun",90000]]},
-  {type:"Private",plans:[["1 bulan",30000],["1 tahun",250000]]}
- ]}
+
+let products = [];
+
 ];
 let cart=[];
 
@@ -179,6 +166,61 @@ renderProducts();
     SUPABASE_URL,
     SUPABASE_KEY
   );
+  
+async function loadProducts() {
+  const { data, error } = await supabaseClient
+    .from("products")
+    .select(`
+      id,
+      name,
+      product_variants (
+        id,
+        account_type,
+        duration,
+        price,
+        promo_price,
+        promo_start,
+        promo_end,
+        is_active
+      )
+    `)
+    .eq("is_active", true);
+
+  if (error) {
+    console.error("Gagal mengambil produk:", error);
+    alert("Produk gagal dimuat. Silakan coba lagi.");
+    return;
+  }
+
+  const now = new Date();
+
+  products = data.map(p => ({
+    name: p.name,
+    category: "Produk Digital",
+    icon: "✦",
+    variants: (p.product_variants || [])
+      .filter(v => v.is_active)
+      .map(v => {
+        const promoAktif =
+          v.promo_price !== null &&
+          (v.promo_start === null || new Date(v.promo_start) <= now) &&
+          (v.promo_end === null || new Date(v.promo_end) >= now);
+
+        return {
+          type: v.account_type,
+          plans: [[
+            v.duration,
+            Number(promoAktif ? v.promo_price : v.price)
+          ]]
+        };
+      })
+  }));
+
+  renderProducts();
+}
+
+loadProducts();
+
 </script>
 
 </body>
