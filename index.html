@@ -87,25 +87,46 @@ let cart=[];
 
 const rupiah=n=>"Rp"+n.toLocaleString("id-ID");
 
-function renderProducts(){
- document.getElementById("products").innerHTML=products.map((p,i)=>`
- <article class="card">
-  <div class="product-top">
-   <div class="product-icon">${p.icon}</div>
-   <div><h3>${p.name}</h3><small>${p.category}</small></div>
-  </div>
-  <label>Jenis akun</label>
-  <select id="type${i}" onchange="updatePrice(${i})">
-   ${p.variants.map(v=>`<option>${v.type}</option>`).join("")}
-  </select>
-  <label>Paket</label>
-  <select id="plan${i}" onchange="updatePrice(${i})"></select>
-  <div class="price-row">
-   <div class="price" id="price${i}">-</div>
-   <button class="add" onclick="addCart(${i})">+ Pilih</button>
-  </div>
- </article>`).join("");
- products.forEach((p,i)=>updatePrice(i));
+function renderProducts() {
+  document.getElementById("products").innerHTML = products.map((p, i) => {
+    const hasVariants = Array.isArray(p.variants) && p.variants.length > 0;
+
+    return `
+      <article class="card">
+        <div class="product-top">
+          <div class="product-icon">${p.icon || "✦"}</div>
+          <div>
+            <h3>${p.name}</h3>
+            <small>${p.category || "Produk Digital"}</small>
+          </div>
+        </div>
+
+        ${hasVariants ? `
+          <label>Jenis akun</label>
+          <select id="type${i}" onchange="updatePrice(${i})">
+            ${p.variants.map(v => `<option>${v.type}</option>`).join("")}
+          </select>
+
+          <label>Paket</label>
+          <select id="plan${i}" onchange="updatePrice(${i})"></select>
+
+          <div class="price-row">
+            <div class="price" id="price${i}"></div>
+            <button class="add" onclick="addCart(${i})">+ Pilih</button>
+          </div>
+        ` : `
+          <p class="empty">Varian produk belum tersedia.</p>
+          <button class="add" disabled>Belum tersedia</button>
+        `}
+      </article>
+    `;
+  }).join("");
+
+  products.forEach((p, i) => {
+    if (p.variants && p.variants.length > 0) {
+      updatePrice(i);
+    }
+  });
 }
 
 function updatePrice(i){
