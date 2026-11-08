@@ -5,6 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Login | PremByLy</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  .stats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin: 22px 0;
+}
+
+.stat-card {
+  padding: 18px;
+  background: #f5f3ff;
+  border-radius: 12px;
+}
+
+.stat-card span {
+  display: block;
+  color: #777;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.stat-card strong {
+  font-size: 24px;
+}
+
+.dashboard-menu {
+  margin-top: 25px;
+}
+
+.dashboard-menu h2 {
+  font-size: 18px;
+}
+
+.dashboard-menu button {
+  margin-top: 10px;
+  background: #eeeaf8;
+  color: #777;
+}
   <style>
     * { box-sizing: border-box; }
     body {
@@ -51,11 +88,35 @@
       <p id="message"></p>
     </section>
 
-    <section id="dashboard">
-      <h1>Selamat datang!</h1>
-      <p>Login admin berhasil. Area pengelolaan PremByLy siap dikembangkan.</p>
-      <button id="logoutButton">Keluar</button>
-    </section>
+<section id="dashboard">
+  <h1>Dashboard PremByLy</h1>
+  <p>Selamat datang di halaman pengelolaan toko.</p>
+
+  <div class="stats">
+    <div class="stat-card">
+      <span>Total Pesanan</span>
+      <strong id="totalOrders">0</strong>
+    </div>
+
+    <div class="stat-card">
+      <span>Total Omzet Tercatat</span>
+      <strong id="totalRevenue">Rp0</strong>
+    </div>
+
+    <div class="stat-card">
+      <span>Produk Terjual</span>
+      <strong id="totalSold">0</strong>
+    </div>
+  </div>
+
+  <div class="dashboard-menu">
+    <h2>Menu Pengelolaan</h2>
+    <button type="button" disabled>Kelola Produk (segera hadir)</button>
+    <button type="button" disabled>Riwayat Pesanan (segera hadir)</button>
+  </div>
+
+  <button id="logoutButton">Keluar</button>
+</section>
   </main>
 
   <script>
