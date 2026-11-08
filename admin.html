@@ -127,7 +127,29 @@
       SUPABASE_URL,
       SUPABASE_KEY
     );
+async function loadDashboard() {
+  const { data: orders, error } = await supabaseClient
+    .from("orders")
+    .select("id, total");
 
+  if (error) {
+    console.error("Gagal mengambil pesanan:", error.message);
+    document.getElementById("totalOrders").textContent = "Gagal";
+    document.getElementById("totalRevenue").textContent = "Gagal";
+    return;
+  }
+
+  const totalOrders = orders.length;
+
+  const totalRevenue = orders.reduce((sum, order) => {
+    return sum + Number(order.total || 0);
+  }, 0);
+
+  document.getElementById("totalOrders").textContent = totalOrders;
+
+  document.getElementById("totalRevenue").textContent =
+    "Rp" + totalRevenue.toLocaleString("id-ID");
+}
     const loginSection = document.getElementById("login");
     const dashboardSection = document.getElementById("dashboard");
     const message = document.getElementById("message");
@@ -167,6 +189,7 @@
 
       loginSection.style.display = "none";
       dashboardSection.style.display = "block";
+      loadDashboard();
     });
 
     document.getElementById("logoutButton").addEventListener("click", async () => {
