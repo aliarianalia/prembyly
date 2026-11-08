@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Login | PremByLy</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
       .stats {
@@ -69,6 +70,24 @@
     }
     #message { font-size: 14px; }
     #dashboard { display: none; }
+    .chart-card {
+  margin-top: 25px;
+  padding: 18px;
+  background: #f5f3ff;
+  border-radius: 12px;
+}
+
+.chart-card h2 {
+  font-size: 18px;
+  margin-bottom: 18px;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  margin: auto;
+}
   </style>
 </head>
 <body>
@@ -109,7 +128,13 @@
       <strong id="totalSold">0</strong>
     </div>
   </div>
-
+<div class="chart-card">
+  <h2>Produk Terjual</h2>
+  <div class="chart-container">
+    <canvas id="productChart"></canvas>
+  </div>
+  <p id="chartMessage">Memuat data produk...</p>
+</div>
   <div class="dashboard-menu">
     <h2>Menu Pengelolaan</h2>
     <button type="button" disabled>Kelola Produk (segera hadir)</button>
@@ -191,6 +216,64 @@ async function loadDashboard() {
       loginSection.style.display = "none";
       dashboardSection.style.display = "block";
       loadDashboard();
+      loadProductChart();
+      let productChartInstance = null;
+
+async function loadProductChart() {
+  const { data, error } = await supabaseClient
+    .from("order_items")
+    .select("product_name, quantity");
+
+  const message = document.getElementById("chartMessage");
+
+  if (error) {
+    message.textContent = "Gagal memuat data produk.";
+    console.error(error);
+    return;
+  }
+
+  const productTotals = {};
+
+  data.forEach(item => {
+    const name = item.product_name;
+    productTotals[name] = (productTotals[name] || 0) +
+      Number(item.quantity || 0);
+  });
+
+  const labels = Object.keys(productTotals);
+  const values = Object.values(productTotals);
+
+  if (labels.length === 0) {
+    message.textContent = "Belum ada produk terjual.";
+    return;
+  }
+
+  message.textContent = "";
+
+  const ctx = document.getElementById("productChart");
+
+  if (productChartInstance) {
+    productChartInstance.destroy();
+  }
+
+  productChartInstance = new Chart(ctx, {
+    type: "pie",
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: "bottom"
+        }
+      }
+    }
+  });
+}
     });
 
     document.getElementById("logoutButton").addEventListener("click", async () => {
