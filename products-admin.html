@@ -73,8 +73,17 @@ textarea {
   <label for="productWarranty">Garansi</label>
   <textarea id="productWarranty" placeholder="Informasi garansi"></textarea>
 
-  <label for="productImage">URL Gambar Produk</label>
-  <input id="productImage" type="url" placeholder="https://...">
+  <label for="productImage">Upload Gambar Produk</label>
+<input
+  id="productImage"
+  type="file"
+  accept="image/*"
+>
+      <img
+  id="imagePreview"
+  style="display:none; width:150px; margin-top:10px; border-radius:10px;"
+  alt="Preview gambar produk"
+>
 
   <button type="button" onclick="addProduct()">Simpan Produk</button>
     </div>
@@ -140,9 +149,16 @@ textarea {
       ${product.is_active ? "Aktif" : "Nonaktif"}
     </span>
     <br><br>
+<button onclick="toggleProduct('${product.id}', ${product.is_active})">
+  ${product.is_active ? "Nonaktifkan Produk" : "Aktifkan Produk"}
+</button>
+    <br><br>
     <button onclick="editProduct('${product.id}')">
       Edit Produk
     </button>
+    <button onclick="deleteProduct('${product.id}')">
+  Hapus Produk
+</button>
   </div>
 `).join("");
     }
@@ -158,27 +174,55 @@ textarea {
     }
 async function addProduct() {
   const name = document.getElementById("productName").value.trim();
-  const description = document.getElementById("productDescription").value.trim();
-  const terms = document.getElementById("productTerms").value.trim();
-  const warranty = document.getElementById("productWarranty").value.trim();
-  const image_url = document.getElementById("productImage").value.trim();
+  const description = document.getElementById("productDescription").value;
+  const terms = document.getElementById("productTerms").value;
+  const warranty = document.getElementById("productWarranty").value;
+  const imageFile = document.getElementById("productImage").files[0];
 
   if (!name) {
-    alert("Nama produk wajib diisi.");
+    alert("Nama produk wajib diisi!");
     return;
   }
 
-  const { data, error } = await supabaseClient
+  let imageUrl = null;
+
+  if (imageFile) {
+    if (!imageFile.type.startsWith("image/")) {
+      alert("File harus berupa gambar!");
+      return;
+    }
+
+    const fileName =
+      Date.now() + "-" + imageFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+
+    const { error: uploadError } = await supabaseClient
+      .storage
+      .from("product_image")
+      .upload(fileName, imageFile);
+
+    if (uploadError) {
+      alert("Gagal mengunggah gambar: " + uploadError.message);
+      return;
+    }
+
+    const { data: publicData } = supabaseClient
+      .storage
+      .from("product_image")
+      .getPublicUrl(fileName);
+
+    imageUrl = publicData.publicUrl;
+  }
+
+  const { error } = await supabaseClient
     .from("products")
     .insert([{
       name,
       description,
       terms,
       warranty,
-      image_url,
+      image_url: imageUrl,
       is_active: true
-    }])
-    .select();
+    }]);
 
   if (error) {
     alert("Gagal menyimpan produk: " + error.message);
@@ -192,60 +236,147 @@ async function addProduct() {
   document.getElementById("productTerms").value = "";
   document.getElementById("productWarranty").value = "";
   document.getElementById("productImage").value = "";
+  document.getElementById("imagePreview").style.display = "none";
 
   loadProducts();
-    }
+                          }
     async function editProduct(id) {
-  const { data: product, error } = await supabaseClient
+  const { data: product, error: fetchError } = await supabaseClient
     .from("products")
     .select("id, name, description, terms, warranty, image_url")
     .eq("id", id)
     .single();
 
-  if (error || !product) {
-    alert("Gagal mengambil data produk.");
+  if (fetchError) {
+    alert("Gagal mengambil data produk: " + fetchError.message);
     return;
   }
 
   const name = prompt("Nama produk:", product.name);
   if (name === null) return;
 
-  const description = prompt("Deskripsi:", product.description || "");
+  const description = prompt("Deskripsi produk:", product.description || "");
   if (description === null) return;
 
-  const terms = prompt("Ketentuan:", product.terms || "");
+  const terms = prompt("Syarat dan ketentuan:", product.terms || "");
   if (terms === null) return;
 
   const warranty = prompt("Garansi:", product.warranty || "");
   if (warranty === null) return;
 
-  const image_url = prompt("URL gambar:", product.image_url || "");
-  if (image_url === null) return;
+  const imageInput = document.createElement("input");
+  imageInput.type = "file";
+  imageInput.accept = "image/*";
 
-  if (!name.trim()) {
-    alert("Nama produk tidak boleh kosong.");
-    return;
+  const imageFile = await new Promise(resolve => {
+    imageInput.onchange = () => resolve(imageInput.files[0] || null);
+    imageInput.click();
+  });
+
+  let imageUrl = product.image_url;
+
+  if (imageFile) {
+    const fileName =
+      Date.now() + "-" + imageFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+
+    const { error: uploadError } = await supabaseClient
+      .storage
+      .from("product_image")
+      .upload(fileName, imageFile);
+
+    if (uploadError) {
+      alert("Gagal mengunggah gambar: " + uploadError.message);
+      return;
+    }
+
+    const { data: publicData } = supabaseClient
+      .storage
+      .from("product_image")
+      .getPublicUrl(fileName);
+
+    imageUrl = publicData.publicUrl;
   }
 
-  const { error: updateError } = await supabaseClient
+  const { error } = await supabaseClient
     .from("products")
     .update({
-      name: name.trim(),
-      description: description.trim(),
-      terms: terms.trim(),
-      warranty: warranty.trim(),
-      image_url: image_url.trim()
+      name,
+      description,
+      terms,
+      warranty,
+      image_url: imageUrl
     })
     .eq("id", id);
 
-  if (updateError) {
-    alert("Gagal mengubah produk: " + updateError.message);
+  if (error) {
+    alert("Gagal memperbarui produk: " + error.message);
     return;
   }
 
   alert("Produk berhasil diperbarui!");
   loadProducts();
+            }
+    async function deleteProduct(id) {
+  const yakin = confirm(
+    "Apakah kamu yakin ingin menghapus produk ini?"
+  );
+
+  if (!yakin) return;
+
+  const { error } = await supabaseClient
+    .from("products")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert("Gagal menghapus produk: " + error.message);
+    return;
+  }
+
+  alert("Produk berhasil dihapus!");
+  loadProducts();
     }
+    async function toggleProduct(id, currentStatus) {
+  const newStatus = !currentStatus;
+
+  const { error } = await supabaseClient
+    .from("products")
+    .update({ is_active: newStatus })
+    .eq("id", id);
+
+  if (error) {
+    alert("Gagal mengubah status produk: " + error.message);
+    return;
+  }
+
+  alert(
+    newStatus
+      ? "Produk berhasil diaktifkan!"
+      : "Produk berhasil dinonaktifkan!"
+  );
+
+  loadProducts();
+    }
+    document.getElementById("productImage").addEventListener("change", function(event) {
+  const file = event.target.files[0];
+  const preview = document.getElementById("imagePreview");
+
+  if (!file) {
+    preview.style.display = "none";
+    preview.src = "";
+    return;
+  }
+
+  if (!file.type.startsWith("image/")) {
+    alert("Silakan pilih file gambar.");
+    event.target.value = "";
+    preview.style.display = "none";
+    return;
+  }
+
+  preview.src = URL.createObjectURL(file);
+  preview.style.display = "block";
+});
     loadProducts();
   </script>
 </body>
