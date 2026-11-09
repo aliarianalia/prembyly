@@ -29,6 +29,24 @@
     }
     a { color: #7655c9; text-decoration: none; }
     #message { color: #777; }
+    label {
+  display: block;
+  margin-top: 14px;
+  margin-bottom: 6px;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+textarea {
+  min-height: 80px;
+  font-family: Arial, sans-serif;
+}
   </style>
 </head>
 <body>
@@ -40,6 +58,26 @@
 
     <p><a href="admin.html">← Kembali ke Dashboard</a></p>
     <p id="message">Memuat produk...</p>
+    <div class="product">
+  <h2>Tambah Produk Baru</h2>
+
+  <label for="productName">Nama Produk</label>
+  <input id="productName" type="text" placeholder="Contoh: Canva Pro">
+
+  <label for="productDescription">Deskripsi</label>
+  <textarea id="productDescription" placeholder="Deskripsi produk"></textarea>
+
+  <label for="productTerms">Ketentuan</label>
+  <textarea id="productTerms" placeholder="Ketentuan penggunaan"></textarea>
+
+  <label for="productWarranty">Garansi</label>
+  <textarea id="productWarranty" placeholder="Informasi garansi"></textarea>
+
+  <label for="productImage">URL Gambar Produk</label>
+  <input id="productImage" type="url" placeholder="https://...">
+
+  <button type="button" onclick="addProduct()">Simpan Produk</button>
+    </div>
     <div id="productList"></div>
   </main>
 
@@ -114,7 +152,45 @@
         "'": "&#39;"
       })[char]);
     }
+async function addProduct() {
+  const name = document.getElementById("productName").value.trim();
+  const description = document.getElementById("productDescription").value.trim();
+  const terms = document.getElementById("productTerms").value.trim();
+  const warranty = document.getElementById("productWarranty").value.trim();
+  const image_url = document.getElementById("productImage").value.trim();
 
+  if (!name) {
+    alert("Nama produk wajib diisi.");
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("products")
+    .insert([{
+      name,
+      description,
+      terms,
+      warranty,
+      image_url,
+      is_active: true
+    }])
+    .select();
+
+  if (error) {
+    alert("Gagal menyimpan produk: " + error.message);
+    return;
+  }
+
+  alert("Produk berhasil ditambahkan!");
+
+  document.getElementById("productName").value = "";
+  document.getElementById("productDescription").value = "";
+  document.getElementById("productTerms").value = "";
+  document.getElementById("productWarranty").value = "";
+  document.getElementById("productImage").value = "";
+
+  loadProducts();
+    }
     loadProducts();
   </script>
 </body>
