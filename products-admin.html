@@ -134,13 +134,17 @@ textarea {
       message.textContent = "Total produk: " + data.length;
 
       list.innerHTML = data.map(product => `
-        <div class="product">
-          <h3>${escapeHTML(product.name)}</h3>
-          <span class="status">
-            ${product.is_active ? "Aktif" : "Nonaktif"}
-          </span>
-        </div>
-      `).join("");
+  <div class="product">
+    <h3>${escapeHTML(product.name)}</h3>
+    <span class="status">
+      ${product.is_active ? "Aktif" : "Nonaktif"}
+    </span>
+    <br><br>
+    <button onclick="editProduct('${product.id}')">
+      Edit Produk
+    </button>
+  </div>
+`).join("");
     }
 
     function escapeHTML(value) {
@@ -189,6 +193,57 @@ async function addProduct() {
   document.getElementById("productWarranty").value = "";
   document.getElementById("productImage").value = "";
 
+  loadProducts();
+    }
+    async function editProduct(id) {
+  const { data: product, error } = await supabaseClient
+    .from("products")
+    .select("id, name, description, terms, warranty, image_url")
+    .eq("id", id)
+    .single();
+
+  if (error || !product) {
+    alert("Gagal mengambil data produk.");
+    return;
+  }
+
+  const name = prompt("Nama produk:", product.name);
+  if (name === null) return;
+
+  const description = prompt("Deskripsi:", product.description || "");
+  if (description === null) return;
+
+  const terms = prompt("Ketentuan:", product.terms || "");
+  if (terms === null) return;
+
+  const warranty = prompt("Garansi:", product.warranty || "");
+  if (warranty === null) return;
+
+  const image_url = prompt("URL gambar:", product.image_url || "");
+  if (image_url === null) return;
+
+  if (!name.trim()) {
+    alert("Nama produk tidak boleh kosong.");
+    return;
+  }
+
+  const { error: updateError } = await supabaseClient
+    .from("products")
+    .update({
+      name: name.trim(),
+      description: description.trim(),
+      terms: terms.trim(),
+      warranty: warranty.trim(),
+      image_url: image_url.trim()
+    })
+    .eq("id", id);
+
+  if (updateError) {
+    alert("Gagal mengubah produk: " + updateError.message);
+    return;
+  }
+
+  alert("Produk berhasil diperbarui!");
   loadProducts();
     }
     loadProducts();
