@@ -80,7 +80,7 @@
 
       const { data, error } = await supabaseClient
         .from("products")
-        .select("id, name, category, is_active")
+        .select("id, name, is_active")
         .order("name");
 
       if (error) {
@@ -98,7 +98,6 @@
       list.innerHTML = data.map(product => `
         <div class="product">
           <h3>${escapeHTML(product.name)}</h3>
-          <p>${escapeHTML(product.category || "Produk Digital")}</p>
           <span class="status">
             ${product.is_active ? "Aktif" : "Nonaktif"}
           </span>
