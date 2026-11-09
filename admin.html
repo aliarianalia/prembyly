@@ -154,17 +154,19 @@
       SUPABASE_KEY
     );
 async function loadDashboard() {
-  const { data: orders, error } = await supabaseClient
+  // Mengambil data pesanan
+  const { data: orders, error: orderError } = await supabaseClient
     .from("orders")
     .select("id, total");
 
-  if (error) {
-    console.error("Gagal mengambil pesanan:", error.message);
+  if (orderError) {
+    console.error("Gagal mengambil pesanan:", orderError.message);
     document.getElementById("totalOrders").textContent = "Gagal";
     document.getElementById("totalRevenue").textContent = "Gagal";
     return;
   }
 
+  // Menghitung jumlah pesanan dan omzet
   const totalOrders = orders.length;
 
   const totalRevenue = orders.reduce((sum, order) => {
@@ -175,6 +177,23 @@ async function loadDashboard() {
 
   document.getElementById("totalRevenue").textContent =
     "Rp" + totalRevenue.toLocaleString("id-ID");
+
+  // Mengambil jumlah produk dari setiap item pesanan
+  const { data: items, error: itemError } = await supabaseClient
+    .from("order_items")
+    .select("quantity");
+
+  if (itemError) {
+    console.error("Gagal mengambil item:", itemError.message);
+    document.getElementById("totalSold").textContent = "Gagal";
+    return;
+  }
+
+  const totalSold = items.reduce((sum, item) => {
+    return sum + Number(item.quantity || 0);
+  }, 0);
+
+  document.getElementById("totalSold").textContent = totalSold;
 }
     const loginSection = document.getElementById("login");
     const dashboardSection = document.getElementById("dashboard");
