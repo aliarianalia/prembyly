@@ -197,7 +197,7 @@ async function addProduct() {
 
     const { error: uploadError } = await supabaseClient
       .storage
-      .from("product_image")
+      .from("product-image")
       .upload(fileName, imageFile);
 
     if (uploadError) {
@@ -291,7 +291,7 @@ async function addProduct() {
 
     const { data: publicData } = supabaseClient
       .storage
-      .from("product_image")
+      .from("product-image")
       .getPublicUrl(fileName);
 
     imageUrl = publicData.publicUrl;
