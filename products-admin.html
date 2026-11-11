@@ -127,7 +127,7 @@ textarea {
 
       const { data, error } = await supabaseClient
         .from("products")
-        .select("id, name, is_active")
+        .select("id, name, is_active, image_url")
         .order("name");
 
       if (error) {
@@ -144,7 +144,14 @@ textarea {
 
       list.innerHTML = data.map(product => `
   <div class="product">
-    <h3>${escapeHTML(product.name)}</h3>
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+  ${
+    product.image_url
+      ? `<img src="${escapeHTML(product.image_url)}" alt="${escapeHTML(product.name)}" style="width:75px; height:75px; object-fit:cover; border-radius:8px;">`
+      : `<div style="width:75px; height:75px; background:#eee; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:12px;">No Image</div>`
+  }
+  <h3>${escapeHTML(product.name)}</h3>
+</div>
     <span class="status">
       ${product.is_active ? "Aktif" : "Nonaktif"}
     </span>
